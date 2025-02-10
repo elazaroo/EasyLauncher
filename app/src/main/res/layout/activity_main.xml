@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    android:background="@drawable/gradient_background">
+
+    <!-- Botón para editar el inicio -->
+    <Button
+        android:id="@+id/btn_edit_home"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Editar Inicio"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/rounded_button"
+        android:textColor="@android:color/white"
+        android:padding="12dp" />
+
+    <!-- Contenedor para los botones de aplicaciones -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <GridLayout
+            android:id="@+id/layout_buttons"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:columnCount="3"
+            android:rowCount="3"
+            android:useDefaultMargins="true"
+            android:alignmentMode="alignBounds"
+            android:horizontalSpacing="8dp"
+            android:verticalSpacing="8dp"
+            android:padding="8dp">
+        </GridLayout>
+
+    </ScrollView>
+
+</LinearLayout>
