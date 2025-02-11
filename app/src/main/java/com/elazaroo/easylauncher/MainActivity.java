@@ -209,7 +209,7 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         } else {
-            android.widget.Toast.makeText(this, "No se encontró la aplicación: " + appName, android.widget.Toast.LENGTH_SHORT).show();
+            android.widget.Toast.makeText(this, getString(R.string.app_not_found, appName), android.widget.Toast.LENGTH_SHORT).show();
         }
     }
 

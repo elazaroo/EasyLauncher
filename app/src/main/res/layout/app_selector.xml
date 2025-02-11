@@ -4,7 +4,7 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:padding="16dp"
-    android:background="@android:color/white">
+    android:background="?android:windowBackground">
 
     <ListView
         android:id="@+id/list_apps"
@@ -17,14 +17,10 @@
 
     <Button
         android:id="@+id/btn_save_selection"
-        style="?attr/borderlessButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Guardar Selección"
-        android:backgroundTint="@android:color/holo_green_light"
-        android:textColor="@android:color/white"
-        android:padding="12dp"
-        android:layout_marginTop="16dp"
-        android:radius="8dp" />
+        android:text="@string/save_selection"
+        style="?attr/buttonStyle"
+        android:layout_marginTop="16dp" />
 
 </LinearLayout>

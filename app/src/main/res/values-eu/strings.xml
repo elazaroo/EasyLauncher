@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Easy Launcher</string>
+    <string name="edit_home">Hasiera Editatu</string>
+    <string name="save_selection">Hautapena Gorde</string>
+    <string name="app_not_found">Aplikazioa ez da aurkitu: %1$s</string>
+</resources>

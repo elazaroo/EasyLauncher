@@ -1,7 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.EasyLauncher" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimaryDark</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccentDark</item>
+        <item name="android:windowBackground">@drawable/gradient_background_dark</item>
+        <item name="listItemTextColor">@color/listItemTextColorDark</item>
+        <item name="buttonStyle">@style/ButtonStyleDark</item>
+    </style>
+
+    <style name="Theme.EasyLauncher" parent="Base.Theme.EasyLauncher" />
+
+    <style name="ButtonStyleDark" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/button_background_dark</item>
+        <item name="android:textColor">@color/buttonTextColorDark</item>
     </style>
 </resources>

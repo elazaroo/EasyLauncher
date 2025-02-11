@@ -1,9 +1,17 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
     <style name="Base.Theme.EasyLauncher" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+        <item name="colorPrimary">@color/colorPrimaryLight</item>
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
+        <item name="colorAccent">@color/colorAccentLight</item>
+        <item name="android:windowBackground">@drawable/gradient_background_light</item>
+        <item name="listItemTextColor">@color/listItemTextColorLight</item>
+        <item name="buttonStyle">@style/ButtonStyleLight</item>
     </style>
 
     <style name="Theme.EasyLauncher" parent="Base.Theme.EasyLauncher" />
+
+    <style name="ButtonStyleLight" parent="Widget.AppCompat.Button">
+        <item name="android:background">@drawable/button_background_light</item>
+        <item name="android:textColor">@color/buttonTextColorLight</item>
+    </style>
 </resources>

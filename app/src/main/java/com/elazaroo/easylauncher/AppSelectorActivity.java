@@ -8,6 +8,8 @@ import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
+
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -115,6 +117,13 @@ class AppAdapter extends ArrayAdapter<ApplicationInfo> {
 
         ApplicationInfo app = apps.get(position);
         textView.setText(app.loadLabel(packageManager));
+
+        // Set text color based on the current theme
+        TypedValue typedValue = new TypedValue();
+        context.getTheme().resolveAttribute(R.attr.listItemTextColor, typedValue, true);
+        int textColor = typedValue.data;
+
+        textView.setTextColor(textColor);
 
         if (iconView != null) {
             iconView.setImageDrawable(app.loadIcon(packageManager));

@@ -1,5 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
+    <color name="colorPrimaryLight">#D3D3D3</color>
+    <color name="colorPrimaryDark">#2b2d30</color>
+    <color name="colorAccentLight">#00C9FF</color>
+    <color name="colorAccentDark">#00C9FF</color>
+    <color name="backgroundLight">#FFFFFFFF</color>
+    <color name="backgroundDark">#2b2d30</color>
+    <color name="listItemTextColorLight">#000000</color>
+    <color name="listItemTextColorDark">#FFFFFF</color>
+    <color name="buttonBackgroundLight">#E0E0E0</color>
+    <color name="buttonBackgroundDark">#3A3B3C</color>
+    <color name="buttonTextColorLight">#000000</color>
+    <color name="buttonTextColorDark">#FFFFFF</color>
 </resources>
