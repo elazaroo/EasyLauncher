@@ -15,7 +15,6 @@
         android:gravity="center"
         android:padding="12dp">
 
-    <!-- Ícono de la aplicación -->
     <ImageView
         android:id="@+id/app_icon"
         android:layout_width="56dp"
@@ -23,7 +22,6 @@
         android:contentDescription="App Icon"
         android:layout_marginBottom="8dp" />
 
-    <!-- Nombre de la aplicación -->
     <TextView
         android:id="@+id/app_name"
         android:layout_width="wrap_content"

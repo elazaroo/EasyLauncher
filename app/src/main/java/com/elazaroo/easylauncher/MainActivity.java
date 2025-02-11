@@ -9,7 +9,10 @@ import android.net.Uri;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
+import android.view.DragEvent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,37 +34,62 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Referencia al contenedor de botones
         layoutButtons = findViewById(R.id.layout_buttons);
 
-        // Botón para editar el inicio
         findViewById(R.id.btn_edit_home).setOnClickListener(v -> openAppSelector());
 
-        // Cargar el mapa de aplicaciones y paquetes
         loadAppPackageMap();
 
-        // Cargar aplicaciones seleccionadas previamente
         loadSelectedApps();
     }
 
-    // Abrir la actividad para seleccionar aplicaciones
     private void openAppSelector() {
         Intent intent = new Intent(this, AppSelectorActivity.class);
         startActivityForResult(intent, 1);
     }
 
-    // Manejar el resultado de la selección de aplicaciones
+    private ArrayList<String> mergeSelectedApps(ArrayList<String> newSelection) {
+        SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        String savedApps = prefs.getString("selected_apps", null);
+        ArrayList<String> oldOrder = new ArrayList<>();
+        if (savedApps != null) {
+            String[] appsArray = savedApps.split(",");
+            for (String app : appsArray) {
+                oldOrder.add(app.trim());
+            }
+        }
+
+        ArrayList<String> mergedOrder = new ArrayList<>();
+
+        for (String app : oldOrder) {
+            if (newSelection.contains(app)) {
+                mergedOrder.add(app);
+            }
+        }
+
+        for (String app : newSelection) {
+            if (!oldOrder.contains(app)) {
+                mergedOrder.add(app);
+            }
+        }
+
+        return mergedOrder;
+    }
+
+
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == 1 && resultCode == RESULT_OK) {
-            selectedApps = data.getStringArrayListExtra("selected_apps");
-            saveSelectedAppsToPrefs(selectedApps); // Guardar en SharedPreferences
+            ArrayList<String> newSelection = data.getStringArrayListExtra("selected_apps");
+            selectedApps = mergeSelectedApps(newSelection);
+            saveSelectedAppsToPrefs(selectedApps);
             updateButtons();
         }
     }
 
-    // Cargar aplicaciones seleccionadas desde SharedPreferences
+
     private void loadSelectedApps() {
         SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String savedApps = prefs.getString("selected_apps", null);
@@ -75,21 +103,71 @@ public class MainActivity extends AppCompatActivity {
         updateButtons();
     }
 
-    // Actualizar los botones según las aplicaciones seleccionadas
     private void updateButtons() {
         layoutButtons.removeAllViews();
         for (String appName : selectedApps) {
             View buttonView = createAppButton(appName);
             layoutButtons.addView(buttonView);
         }
+        saveSelectedAppsToPrefs(selectedApps);
     }
 
-    // Crear un botón para una aplicación específica con ícono
+    private void setupDragAndDrop(View buttonView, final String appName) {
+        final int originalPosition = layoutButtons.indexOfChild(buttonView);
+
+        buttonView.setOnLongClickListener(v -> {
+            View.DragShadowBuilder shadowBuilder = new View.DragShadowBuilder(v);
+            v.startDragAndDrop(null, shadowBuilder, v, 0);
+            v.setVisibility(View.INVISIBLE);
+            return true;
+        });
+
+        buttonView.setOnDragListener((v, event) -> {
+            int action = event.getAction();
+            switch (action) {
+                case DragEvent.ACTION_DRAG_ENTERED:
+                    break;
+
+                case DragEvent.ACTION_DROP:
+                    View droppedView = (View) event.getLocalState();
+                    if(droppedView != null) {
+                        droppedView.setVisibility(View.VISIBLE);
+
+                        String draggedAppName = selectedApps.get(layoutButtons.indexOfChild(droppedView));
+
+                        int draggedIndex = selectedApps.indexOf(draggedAppName);
+                        int droppedIndex = selectedApps.indexOf(appName);
+
+                        new Handler(Looper.getMainLooper()).post(() -> {
+                            selectedApps.set(draggedIndex, appName);
+                            selectedApps.set(droppedIndex, draggedAppName);
+
+                            updateButtons();
+                        });
+
+                    }
+                    break;
+
+                case DragEvent.ACTION_DRAG_ENDED:
+                    final Object localState = event.getLocalState();
+                    new Handler(Looper.getMainLooper()).post(() -> {
+                        if (localState instanceof View) {
+                            ((View) localState).setVisibility(View.VISIBLE);
+                        }
+                    });
+                    break;
+
+                default:
+                    break;
+            }
+            return true;
+        });
+    }
+
     private View createAppButton(String appName) {
         LayoutInflater inflater = LayoutInflater.from(this);
         View buttonView = inflater.inflate(R.layout.app_button_layout, null);
 
-        // Configurar el texto y el ícono
         TextView textView = buttonView.findViewById(R.id.app_name);
         ImageView iconView = buttonView.findViewById(R.id.app_icon);
         textView.setText(appName);
@@ -100,31 +178,29 @@ public class MainActivity extends AppCompatActivity {
                 PackageManager packageManager = getPackageManager();
                 iconView.setImageDrawable(packageManager.getApplicationIcon(packageName));
             } catch (Exception e) {
-                e.printStackTrace(); // Manejar errores al obtener el ícono
+                e.printStackTrace();
             }
         }
 
-        // Configurar LayoutParams para garantizar tamaño uniforme
         GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams();
-        layoutParams.width = 300; // Ancho fijo
-        layoutParams.height = 400; // Alto fijo
-        layoutParams.setMargins(8, 8, 8, 8); // Margen uniforme
-
+        layoutParams.width = 300;
+        layoutParams.height = 400;
+        layoutParams.setMargins(8, 8, 8, 8);
         buttonView.setLayoutParams(layoutParams);
 
-        // Asignar el listener de clic
         buttonView.setOnClickListener(v -> openApp(appName));
+
+        setupDragAndDrop(buttonView, appName);
 
         return buttonView;
     }
 
-    // Método para abrir una aplicación específica
     private void openApp(String appName) {
         String packageName = appPackageMap.get(appName);
         if (packageName != null && !packageName.isEmpty()) {
             Intent intent = getPackageManager().getLaunchIntentForPackage(packageName);
             if (intent != null) {
-                startActivity(intent); // Abrir la aplicación
+                startActivity(intent);
             } else {
                 try {
                     startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=" + packageName)));
@@ -137,7 +213,6 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    // Método para guardar las aplicaciones seleccionadas en SharedPreferences
     private void saveSelectedAppsToPrefs(ArrayList<String> apps) {
         SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
@@ -152,12 +227,11 @@ public class MainActivity extends AppCompatActivity {
         editor.apply();
     }
 
-    // Método para cargar el mapa de aplicaciones y paquetes
     private void loadAppPackageMap() {
         PackageManager packageManager = getPackageManager();
         List<ApplicationInfo> installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
 
-        appPackageMap.clear(); // Asegurarse de limpiar antes de llenar
+        appPackageMap.clear();
         for (ApplicationInfo app : installedApps) {
             String appName = app.loadLabel(packageManager).toString();
             String packageName = app.packageName;

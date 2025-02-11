@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
+import android.content.pm.ResolveInfo;
 import android.os.Bundle;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.LayoutInflater;
@@ -15,13 +16,13 @@ import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
+
 import java.util.ArrayList;
 import java.util.List;
 
 public class AppSelectorActivity extends AppCompatActivity {
     private ListView listViewApps;
     private Button btnSaveSelection;
-    private List<ApplicationInfo> installedApps;
     private ArrayList<String> selectedApps = new ArrayList<>();
 
     @Override
@@ -33,42 +34,37 @@ public class AppSelectorActivity extends AppCompatActivity {
         btnSaveSelection = findViewById(R.id.btn_save_selection);
 
         PackageManager packageManager = getPackageManager();
-        installedApps = packageManager.getInstalledApplications(PackageManager.GET_META_DATA);
+        Intent mainIntent = new Intent(Intent.ACTION_MAIN, null);
+        mainIntent.addCategory(Intent.CATEGORY_LAUNCHER);
+        List<ResolveInfo> resolveInfoList = packageManager.queryIntentActivities(mainIntent, 0);
 
-        // Filtrar y ordenar aplicaciones
-        List<ApplicationInfo> filteredApps = new ArrayList<>();
-        for (ApplicationInfo app : installedApps) {
-            String appName = app.loadLabel(packageManager).toString();
-            if (!appName.startsWith("com.")) {
-                filteredApps.add(app);
-            }
+        List<ApplicationInfo> launchableApps = new ArrayList<>();
+        for (ResolveInfo resolveInfo : resolveInfoList) {
+            ApplicationInfo appInfo = resolveInfo.activityInfo.applicationInfo;
+            launchableApps.add(appInfo);
         }
 
-        // Ordenar aplicaciones por nombre
-        filteredApps.sort((app1, app2) -> {
+        launchableApps.sort((app1, app2) -> {
             String name1 = app1.loadLabel(packageManager).toString().toLowerCase();
             String name2 = app2.loadLabel(packageManager).toString().toLowerCase();
             return name1.compareTo(name2);
         });
 
-        // Usar el adaptador con la lista filtrada y ordenada
-        AppAdapter adapter = new AppAdapter(this, filteredApps);
+        AppAdapter adapter = new AppAdapter(this, launchableApps);
         listViewApps.setAdapter(adapter);
         listViewApps.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
 
-        // Seleccionar automáticamente las primeras N aplicaciones
-        int numberOfAppsToSelect = 5; // Cambia este valor según cuántas aplicaciones quieras seleccionar
-        for (int i = 0; i < Math.min(numberOfAppsToSelect, filteredApps.size()); i++) {
+        int numberOfAppsToSelect = 0;
+        for (int i = 0; i < Math.min(numberOfAppsToSelect, launchableApps.size()); i++) {
             listViewApps.setItemChecked(i, true);
         }
 
-        // Cargar selecciones previas desde SharedPreferences
         SharedPreferences prefs = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String savedApps = prefs.getString("selected_apps", null);
         if (savedApps != null) {
             String[] appsArray = savedApps.split(",");
-            for (int i = 0; i < filteredApps.size(); i++) {
-                String appName = filteredApps.get(i).loadLabel(packageManager).toString();
+            for (int i = 0; i < launchableApps.size(); i++) {
+                String appName = launchableApps.get(i).loadLabel(packageManager).toString();
                 for (String savedApp : appsArray) {
                     if (appName.equals(savedApp.trim())) {
                         listViewApps.setItemChecked(i, true);
@@ -77,16 +73,14 @@ public class AppSelectorActivity extends AppCompatActivity {
             }
         }
 
-        // Guardar la selección
-        btnSaveSelection.setOnClickListener(v -> saveSelectedApps(filteredApps));
+        btnSaveSelection.setOnClickListener(v -> saveSelectedApps(launchableApps));
     }
 
-    // Método para guardar las aplicaciones seleccionadas
-    private void saveSelectedApps(List<ApplicationInfo> filteredApps) { // ← RECIBIR filteredApps
+    private void saveSelectedApps(List<ApplicationInfo> launchableApps) {
         selectedApps.clear();
-        for (int i = 0; i < filteredApps.size(); i++) {  // ← CORREGIDO: usar filteredApps
+        for (int i = 0; i < launchableApps.size(); i++) {
             if (listViewApps.isItemChecked(i)) {
-                String appName = filteredApps.get(i).loadLabel(getPackageManager()).toString();
+                String appName = launchableApps.get(i).loadLabel(getPackageManager()).toString();
                 selectedApps.add(appName);
             }
         }
@@ -96,8 +90,6 @@ public class AppSelectorActivity extends AppCompatActivity {
         setResult(RESULT_OK, intent);
         finish();
     }
-
-
 }
 
 class AppAdapter extends ArrayAdapter<ApplicationInfo> {

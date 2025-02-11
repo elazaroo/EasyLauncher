@@ -6,7 +6,6 @@
     android:padding="16dp"
     android:background="@android:color/white">
 
-    <!-- Lista de aplicaciones -->
     <ListView
         android:id="@+id/list_apps"
         android:layout_width="match_parent"
@@ -16,7 +15,6 @@
         android:dividerHeight="1dp"
         android:choiceMode="multipleChoice" />
 
-    <!-- Botón para guardar selección -->
     <Button
         android:id="@+id/btn_save_selection"
         style="?attr/borderlessButtonStyle"
