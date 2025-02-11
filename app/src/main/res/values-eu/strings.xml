@@ -4,4 +4,5 @@
     <string name="edit_home">Hasiera Editatu</string>
     <string name="save_selection">Hautapena Gorde</string>
     <string name="app_not_found">Aplikazioa ez da aurkitu: %1$s</string>
+    <string name="weather_icon">Denboraldiaren ikonoa</string>
 </resources>

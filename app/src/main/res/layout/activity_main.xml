@@ -17,6 +17,13 @@
         android:layout_marginBottom="16dp"
         style="?attr/buttonStyle" />
 
+    <include
+        android:id="@+id/weather_widget"
+        layout="@layout/weather_widget"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp" />
+
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"

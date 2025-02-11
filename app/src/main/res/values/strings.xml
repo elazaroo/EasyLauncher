@@ -3,4 +3,5 @@
     <string name="edit_home">Edit Home</string>
     <string name="save_selection">Save Selection</string>
     <string name="app_not_found">App not found: %1$s</string>
+    <string name="weather_icon">Weather icon</string>
 </resources>
