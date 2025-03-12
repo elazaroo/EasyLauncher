@@ -118,7 +118,6 @@ class AppAdapter extends ArrayAdapter<ApplicationInfo> {
         ApplicationInfo app = apps.get(position);
         textView.setText(app.loadLabel(packageManager));
 
-        // Set text color based on the current theme
         TypedValue typedValue = new TypedValue();
         context.getTheme().resolveAttribute(R.attr.listItemTextColor, typedValue, true);
         int textColor = typedValue.data;

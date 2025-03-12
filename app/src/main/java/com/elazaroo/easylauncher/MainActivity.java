@@ -30,6 +30,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import android.content.BroadcastReceiver;
+import android.content.IntentFilter;
+
 import android.Manifest;
 
 public class MainActivity extends AppCompatActivity {
@@ -37,6 +40,7 @@ public class MainActivity extends AppCompatActivity {
     private ArrayList<String> selectedApps = new ArrayList<>();
     private HashMap<String, String> appPackageMap = new HashMap<>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
+    private BroadcastReceiver appChangeReceiver;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
 
         loadAppPackageMap();
         loadSelectedApps();
+        
+        registerAppChangeReceiver();
     }
 
     private boolean checkLocationPermission() {
@@ -134,11 +140,34 @@ public class MainActivity extends AppCompatActivity {
         if (savedApps != null) {
             String[] appsArray = savedApps.split(",");
             selectedApps.clear();
-            for (String packageName : appsArray) {
-                selectedApps.add(packageName.trim());
+            
+            ArrayList<String> stillInstalledApps = new ArrayList<>();
+            
+            for (String appName : appsArray) {
+                String trimmedAppName = appName.trim();
+                String packageName = appPackageMap.get(trimmedAppName);
+                
+                if (packageName != null && isAppInstalled(packageName)) {
+                    stillInstalledApps.add(trimmedAppName);
+                }
+            }
+            
+            selectedApps.addAll(stillInstalledApps);
+            
+            if (stillInstalledApps.size() < appsArray.length) {
+                saveSelectedAppsToPrefs(selectedApps);
             }
         }
         updateButtons();
+    }
+
+    private boolean isAppInstalled(String packageName) {
+        try {
+            getPackageManager().getPackageInfo(packageName, 0);
+            return true;
+        } catch (PackageManager.NameNotFoundException e) {
+            return false;
+        }
     }
 
     private void updateButtons() {
@@ -278,4 +307,52 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void registerAppChangeReceiver() {
+        appChangeReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                String action = intent.getAction();
+                String packageName = intent.getData().getSchemeSpecificPart();
+                
+                if (Intent.ACTION_PACKAGE_REMOVED.equals(action)) {
+                    refreshAppList(packageName);
+                } else if (Intent.ACTION_PACKAGE_ADDED.equals(action)) {
+                    loadAppPackageMap();
+                }
+            }
+        };
+        
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_PACKAGE_REMOVED);
+        filter.addAction(Intent.ACTION_PACKAGE_ADDED);
+        filter.addDataScheme("package");
+        registerReceiver(appChangeReceiver, filter);
+    }
+
+    private void refreshAppList(String removedPackageName) {
+        boolean needsUpdate = false;
+        ArrayList<String> appsToRemove = new ArrayList<>();
+        
+        for (String appName : selectedApps) {
+            String packageName = appPackageMap.get(appName);
+            if (packageName != null && packageName.equals(removedPackageName)) {
+                appsToRemove.add(appName);
+                needsUpdate = true;
+            }
+        }
+        
+        if (needsUpdate) {
+            selectedApps.removeAll(appsToRemove);
+            saveSelectedAppsToPrefs(selectedApps);
+            updateButtons();
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (appChangeReceiver != null) {
+            unregisterReceiver(appChangeReceiver);
+        }
+        super.onDestroy();
+    }
 }
