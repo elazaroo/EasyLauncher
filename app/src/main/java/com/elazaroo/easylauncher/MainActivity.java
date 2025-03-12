@@ -41,13 +41,35 @@ public class MainActivity extends AppCompatActivity {
     private HashMap<String, String> appPackageMap = new HashMap<>();
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
     private BroadcastReceiver appChangeReceiver;
+    private boolean lastLocationPermissionState;
+    private Handler permissionCheckHandler = new Handler(Looper.getMainLooper());
+    private Runnable permissionCheckRunnable = new Runnable() {
+        @Override
+        public void run() {
+            boolean currentPermissionState = checkLocationPermission();
+            if (currentPermissionState != lastLocationPermissionState) {
+                lastLocationPermissionState = currentPermissionState;
+                
+                if (currentPermissionState) {
+                    Toast.makeText(MainActivity.this, "Ubicación activada", Toast.LENGTH_SHORT).show();
+                    initializeWeatherWidget();
+                } else {
+                    Toast.makeText(MainActivity.this, R.string.location_permission_denied, Toast.LENGTH_SHORT).show();
+                    initializeWeatherWidgetWithoutLocation();
+                }
+            }
+            
+            permissionCheckHandler.postDelayed(this, 30000); 
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (checkLocationPermission()) {
+        lastLocationPermissionState = checkLocationPermission();
+        if (lastLocationPermissionState) {
             initializeWeatherWidget();
         } else {
             requestLocationPermission();
@@ -60,6 +82,32 @@ public class MainActivity extends AppCompatActivity {
         loadSelectedApps();
         
         registerAppChangeReceiver();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        
+        boolean currentPermissionState = checkLocationPermission();
+        if (currentPermissionState != lastLocationPermissionState) {
+            lastLocationPermissionState = currentPermissionState;
+            
+            if (currentPermissionState) {
+                Toast.makeText(this, "Ubicación activada", Toast.LENGTH_SHORT).show();
+                initializeWeatherWidget();
+            } else {
+                Toast.makeText(this, R.string.location_permission_denied, Toast.LENGTH_SHORT).show();
+                initializeWeatherWidgetWithoutLocation();
+            }
+        }
+        
+        permissionCheckHandler.post(permissionCheckRunnable);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        permissionCheckHandler.removeCallbacks(permissionCheckRunnable);
     }
 
     private boolean checkLocationPermission() {
@@ -77,14 +125,34 @@ public class MainActivity extends AppCompatActivity {
             if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 initializeWeatherWidget();
             } else {
-                Toast.makeText(this, "Location permission is required to display weather information.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(this, R.string.location_permission_denied, Toast.LENGTH_SHORT).show();
+                initializeWeatherWidgetWithoutLocation();
             }
         }
     }
 
+    private void initializeWeatherWidgetWithoutLocation() {
+        View weatherWidgetView = findViewById(R.id.weather_widget);
+        new WeatherWidget(this, weatherWidgetView, false, new WeatherWidget.LocationPermissionCallback() {
+            @Override
+            public void requestLocationPermission() {
+                ActivityCompat.requestPermissions(MainActivity.this, 
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        });
+    }
+
     private void initializeWeatherWidget() {
         View weatherWidgetView = findViewById(R.id.weather_widget);
-        new WeatherWidget(this, weatherWidgetView);
+        new WeatherWidget(this, weatherWidgetView, true, new WeatherWidget.LocationPermissionCallback() {
+            @Override
+            public void requestLocationPermission() {
+                ActivityCompat.requestPermissions(MainActivity.this, 
+                    new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 
+                    LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        });
     }
 
     private void openAppSelector() {

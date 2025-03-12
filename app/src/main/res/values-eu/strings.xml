@@ -5,4 +5,7 @@
     <string name="save_selection">Hautapena Gorde</string>
     <string name="app_not_found">Aplikazioa ez da aurkitu: %1$s</string>
     <string name="weather_icon">Denboraldiaren ikonoa</string>
+    <string name="location_permission_denied">Kokapena atzera bota da</string>
+    <string name="no_location">Kokapenik ez</string>
+    <string name="requesting_location_permission">Baimenak berriro eskatzen</string>
 </resources>

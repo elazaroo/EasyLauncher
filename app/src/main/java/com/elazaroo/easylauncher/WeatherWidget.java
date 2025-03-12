@@ -12,6 +12,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.bumptech.glide.Glide;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -47,6 +48,7 @@ public class WeatherWidget {
     private double lastKnownLatitude = 0.0;
     private double lastKnownLongitude = 0.0;
     private boolean isFetchingWeather = false;
+    private LocationPermissionCallback permissionCallback;
 
     public WeatherWidget(Context context, View widgetView) {
         this.context = context;
@@ -61,6 +63,40 @@ public class WeatherWidget {
         Log.d(TAG, "WeatherWidget constructor called");
         requestLocationUpdates();
         scheduleWeatherUpdates();
+    }
+
+    public WeatherWidget(Context context, View rootView, boolean hasLocationPermission, LocationPermissionCallback callback) {
+        this.context = context;
+        this.widgetView = rootView;
+        this.weatherIcon = rootView.findViewById(R.id.weather_icon);
+        this.weatherCity = rootView.findViewById(R.id.weather_city);
+        this.weatherDescription = rootView.findViewById(R.id.weather_description);
+        this.client = OkHttpClientProvider.getOkHttpClient();
+        this.fusedLocationClient = LocationServices.getFusedLocationProviderClient(context);
+        this.weatherUpdateHandler = new Handler(Looper.getMainLooper());
+        this.permissionCallback = callback;
+    
+        Log.d(TAG, "WeatherWidget constructor called");
+    
+        if (hasLocationPermission) {
+            requestLocationUpdates();
+            scheduleWeatherUpdates();
+        } else {
+            displayNoLocationState();
+        }
+    }
+
+    private void displayNoLocationState() {
+        weatherCity.setText(R.string.no_location);
+        weatherDescription.setText(R.string.location_permission_denied);
+        weatherIcon.setImageResource(R.drawable.ic_location_off);
+        
+        widgetView.setOnClickListener(v -> {
+            if (permissionCallback != null) {
+                Toast.makeText(context, R.string.requesting_location_permission, Toast.LENGTH_SHORT).show();
+                permissionCallback.requestLocationPermission();
+            }
+        });
     }
 
     private void scheduleWeatherUpdates() {
@@ -255,5 +291,9 @@ public class WeatherWidget {
         }
 
         return isRecent;
+    }
+
+    public interface LocationPermissionCallback {
+        void requestLocationPermission();
     }
 }

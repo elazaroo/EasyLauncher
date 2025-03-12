@@ -5,4 +5,7 @@
     <string name="save_selection">Guardar Selección</string>
     <string name="app_not_found">No se encontró la aplicación: %1$s</string>
     <string name="weather_icon">Icono del tiempo</string>
+    <string name="location_permission_denied">No hay acceso a la ubicación</string>
+    <string name="no_location">Sin ubicación</string>
+    <string name="requesting_location_permission">Solicitando permisos nuevamente</string>
 </resources>
